@@ -1,6 +1,8 @@
-from recon.core.module import BaseModule
-from urllib import quote_plus
 import os
+from urllib import quote_plus
+
+from recon.core.module import BaseModule
+
 
 class Module(BaseModule):
     meta = {
@@ -22,16 +24,21 @@ class Module(BaseModule):
             keywords = [x.strip() for x in fp.read().splitlines() if x and not x.startswith('#')]
         for gist in gists:
             filename = gist.split(os.sep)[-1]
-            self.heading(filename, level=0)
             resp = self.request(gist)
-            for keyword in keywords:
-                self.verbose('Searching Gist for: %s' % (keyword))
-                lines = resp.raw.splitlines()
-                for lineno, line in enumerate(lines):
-                    if keyword in line:
-                        data = {
-                            'reference': gist,
-                            'example': 'line %d: %s' % (lineno, line.strip()),
-                            'category': 'Information Disclosure',
-                        }
-                        self.add_vulnerabilities(**data)
+            lines = resp.raw.splitlines()
+            examples = []
+            for lineno, line in enumerate(lines):
+                line_lower = line.lower()
+                for keyword in keywords:
+                    if keyword in line_lower:
+                        examples.append('line %d: %s' % (lineno, line.strip()))
+                        break
+
+            if len(examples) > 0:
+                self.heading(filename, level=0)
+                data = {
+                    'reference': gist,
+                    'example': '\n'.join(examples),
+                    'category': 'Information Disclosure',
+                }
+                self.add_vulnerabilities(**data)
