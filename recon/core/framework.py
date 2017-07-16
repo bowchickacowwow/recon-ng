@@ -448,11 +448,13 @@ class Framework(cmd.Cmd):
         if not mute: self._display(data, rowcount, '[port] %s (%s/%s) - %s', ('ip_address', 'port', 'protocol', 'host'))
         return rowcount
 
-    def add_hosts(self, host=None, ip_address=None, region=None, country=None, latitude=None, longitude=None, mute=False):
+    def add_hosts(self, host=None, ip_address=None, asn=None, org=None, region=None, country=None, latitude=None, longitude=None, mute=False):
         '''Adds a host to the database and returns the affected row count.'''
         data = dict(
             host = host,
             ip_address = ip_address,
+            asn = asn,
+            org = org,
             region = region,
             country = country,
             latitude = latitude,
