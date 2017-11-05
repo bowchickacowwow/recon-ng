@@ -1,5 +1,5 @@
 from recon.core.module import BaseModule
-import StringIO
+from io import StringIO
 import time
 import xml.etree.ElementTree
 

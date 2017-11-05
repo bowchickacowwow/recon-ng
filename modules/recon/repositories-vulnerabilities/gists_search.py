@@ -1,5 +1,5 @@
 import os
-from urllib import quote_plus
+from urllib.parse import quote_plus
 
 from recon.core.module import BaseModule
 

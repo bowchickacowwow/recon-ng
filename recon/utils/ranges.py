@@ -16,9 +16,11 @@ class Ranges:
 		self._l = []
 		if start and end:
 			self._l.append([start,end])
+	
 	def dump(self):
 		"""Returns the current content of the ranges."""
 		return self._l
+	
 	def _find(self, start):
 		i = 0
 		while i < len(self._l):
@@ -26,8 +28,10 @@ class Ranges:
 				break
 			i = i + 1
 		return i
+	
 	def _isprev(self, i):
 		return not (i == 0)
+	
 	def _prev(self,i):
 		return self._l[i-1]
 		
@@ -71,6 +75,7 @@ class Ranges:
 				# if we have done no work now, we will never
 				# do any more.
 				break
+	
 	def remove(self, start, end):
 		"""Remove the range START to END from the set."""
 		i = self._find(start)
@@ -96,6 +101,7 @@ class Ranges:
 				del self._l[i]
 			else:
 				r[0] = end+1
+	
 	def isin(self, val):
 		"""Is VAL a point in the set of ranges?"""
 		for r in self._l:
@@ -110,21 +116,25 @@ class Ranges:
 		"""Add a list of [start,end] ranges to the set."""
 		for s,e in l:
 			self.add(s, e)
+	
 	def removel(self, l):
 		"""Remove a list of [start,end] ranges from the set."""
 		for s,e in l:
 			self.remove(s, e)
+	
 	# on the other hand, what's copying in python?
 	def _clone(self):
 		n = self.__class__()
 		for s,e in self._l:
 			n._l.append([s,e])
 		return n
+	
 	def __add__(self, other):
 		n = self._clone()
 		for s,e in other._l:
 			n.add(s,e)
 		return n
+	
 	def __sub__(self, other):
 		n = self._clone()
 		for s,e in other._l:
@@ -138,10 +148,12 @@ class Ranges:
 			if self._l[i] != other._l[i]:
 				return 0
 		return 1
+	
 	# okay, just what *is* the length of a range?
 	# in this case it is the number of distinct subranges it has.
 	def __len__(self):
 		return len(self._l)
+	
 	def __cmp__(self, other):
 		if self.__eq__(other):
 			return 0

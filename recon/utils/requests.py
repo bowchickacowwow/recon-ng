@@ -1,8 +1,8 @@
 import json
+import requests
 import socket
 import ssl
-import urllib
-import urllib2
+import xml.etree.ElementTree
 
 # create a global ssl context that ignores certificate validation
 if hasattr(ssl, '_create_unverified_context'): 
@@ -23,7 +23,7 @@ class Request(object):
 
     def __init__(self, **kwargs):
         '''Initializes control parameters as class attributes.'''
-        self.user_agent = "Python-urllib/%s" % (urllib2.__version__) if 'user_agent' not in kwargs else kwargs['user_agent']
+        self.user_agent = requests.utils.default_user_agent() if 'user_agent' not in kwargs else kwargs['user_agent']
         self.debug = False if 'debug' not in kwargs else kwargs['debug']
         self.proxy = None if 'proxy' not in kwargs else kwargs['proxy']
         self.timeout = None if 'timeout' not in kwargs else kwargs['timeout']
@@ -44,71 +44,54 @@ class Request(object):
         # process payload
         if content.upper() == 'JSON':
             headers['Content-Type'] = 'application/json'
-            payload = json.dumps(payload)
-        else:
-            payload = urllib.urlencode(encode_payload(payload))
-        # process basic authentication
-        if len(auth) == 2:
-            authorization = ('%s:%s' % (auth[0], auth[1])).encode('base64').replace('\n', '')
-            headers['Authorization'] = 'Basic %s' % (authorization)
+
         # process socket timeout
         if self.timeout:
             socket.setdefaulttimeout(self.timeout)
         
         # set handlers
         # declare handlers list according to debug setting
-        handlers = [urllib2.HTTPHandler(debuglevel=1), urllib2.HTTPSHandler(debuglevel=1)] if self.debug else []
-        # process cookiejar handler
-        if cookiejar != None:
-            handlers.append(urllib2.HTTPCookieProcessor(cookiejar))
-        # process redirect and add handler
-        if self.redirect == False:
-            handlers.append(NoRedirectHandler)
+        # handlers = [urllib2.HTTPHandler(debuglevel=1), urllib2.HTTPSHandler(debuglevel=1)] if self.debug else []
+
         # process proxies and add handler
+        proxies = None
         if self.proxy:
             proxies = {'http': self.proxy, 'https': self.proxy}
-            handlers.append(urllib2.ProxyHandler(proxies))
 
         # install opener
-        opener = urllib2.build_opener(*handlers)
-        urllib2.install_opener(opener)
+        # opener = urllib2.build_opener(*handlers)
+        # urllib2.install_opener(opener)
 
         # process method and make request
-        if method == 'GET':
-            if payload: url = '%s?%s' % (url, payload)
-            req = urllib2.Request(url, headers=headers)
-        elif method == 'POST':
-            req = urllib2.Request(url, data=payload, headers=headers)
-        elif method == 'HEAD':
-            if payload: url = '%s?%s' % (url, payload)
-            req = urllib2.Request(url, headers=headers)
-            req.get_method = lambda : 'HEAD'
-        else:
-            raise RequestException('Request method \'%s\' is not a supported method.' % (method))
         try:
-            resp = urllib2.urlopen(req)
-        except urllib2.HTTPError as e:
+            if method == 'GET':
+                resp = requests.get(url, params=payload, headers=headers, cookies=cookiejar, auth=auth, allow_redirects=self.redirect, proxies=proxies)
+            elif method == 'POST':
+                resp = requests.post(url, data=payload, headers=headers, cookies=cookiejar, auth=auth, allow_redirects=self.redirect, proxies=proxies)
+            elif method == 'HEAD':
+                resp = requests.head(url, params=payload, headers=headers, cookies=cookiejar, auth=auth, allow_redirects=self.redirect, proxies=proxies)
+            else:
+                raise RequestException('Request method \'%s\' is not a supported method.' % (method))
+        except requests.exceptions.HTTPError as e:
             resp = e
 
         # build and return response object
         return ResponseObject(resp, cookiejar)
 
-class NoRedirectHandler(urllib2.HTTPRedirectHandler):
+# class NoRedirectHandler(urllib2.HTTPRedirectHandler):
 
-    def http_error_302(self, req, fp, code, msg, headers):
-        pass
+#     def http_error_302(self, req, fp, code, msg, headers):
+#         pass
 
-    http_error_301 = http_error_303 = http_error_307 = http_error_302
+#     http_error_301 = http_error_303 = http_error_307 = http_error_302
 
-import gzip
-import StringIO
-import xml.etree.ElementTree
+
 
 class ResponseObject(object):
 
     def __init__(self, resp, cookiejar):
         # set raw response property
-        self.raw = resp.read()
+        self.raw = resp
         # set inherited properties
         self.url = resp.geturl()
         self.status_code = resp.getcode()
@@ -117,32 +100,19 @@ class ResponseObject(object):
         self.encoding = resp.headers.getparam('charset')
         self.content_type = resp.headers.getheader('content-type')
         self.cookiejar = cookiejar
-        # deflate payload if needed
-        if resp.headers.getheader('content-encoding') == 'gzip':
-            self.deflate()
-
-    def deflate(self):
-        with gzip.GzipFile(fileobj=StringIO.StringIO(self.raw)) as gz:
-            self.raw = gz.read()
 
     @property
     def text(self):
-        try:
-            return self.raw.decode(self.encoding)
-        except (UnicodeDecodeError, TypeError):
-            return ''.join([char for char in self.raw if ord(char) in [9,10,13] + range(32, 126)])
+        return resp.text
 
     @property
     def json(self):
-        try:
-            return json.loads(self.text)
-        except ValueError:
-            return None
+        return resp.json()
 
     @property
     def xml(self):
         try:
-            return xml.etree.ElementTree.parse(StringIO.StringIO(self.text))
+            return xml.etree.ElementTree.parse(self.text)
         except xml.etree.ElementTree.ParseError:
             return None
 

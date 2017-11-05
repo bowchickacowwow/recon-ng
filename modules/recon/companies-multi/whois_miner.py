@@ -1,6 +1,6 @@
 from recon.core.module import BaseModule
 from recon.utils import netblock
-from urlparse import urlparse
+from urllib.parse import urlparse
 import urllib
 
 class Module(BaseModule):

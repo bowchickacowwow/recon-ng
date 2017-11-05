@@ -9,15 +9,17 @@ import json
 import os
 import random
 import re
+import runpy
 import shutil
 import sys
-import __builtin__
+import builtins
 
 # import framework libs
 from recon.core import framework
 
 # set the __version__ variable based on the VERSION file
-execfile(os.path.join(sys.path[0], 'VERSION'))
+_version_result = runpy.run_path(os.path.join(sys.path[0], 'VERSION'))
+__version__ = _version_result['__version__']
 
 # using stdout to spool causes tab complete issues
 # therefore, override print function
@@ -33,11 +35,11 @@ def spool_print(*args, **kwargs):
         if 'console' in kwargs and kwargs['console'] is False:
             return
         # new print function must still use the old print function via the backup
-        __builtin__._print(*args, **kwargs)
+        builtins._print(*args, **kwargs)
 # make a builtin backup of the original print function
-__builtin__._print = print
+builtins._print = print
 # override the builtin print function with the new print function
-__builtin__.print = spool_print
+builtins.print = spool_print
 
 #=================================================
 # BASE CLASS
@@ -112,7 +114,7 @@ class Recon(framework.Framework):
         self.register_option('proxy', None, False, 'proxy server (address:port)')
         self.register_option('threads', 10, True, 'number of threads (where applicable)')
         self.register_option('timeout', 10, True, 'socket timeout (seconds)')
-        self.register_option('user-agent', 'Recon-ng/v%s' % (__version__.split('.')[0]), True, 'user-agent string')
+        self.register_option('user-agent', 'Recon-ng/v%s' % (__version__), True, 'user-agent string')
         self.register_option('verbosity', 1, True, 'verbosity level (0 = minimal, 1 = verbose, 2 = debug)')
 
     def _init_home(self):
@@ -137,7 +139,9 @@ class Recon(framework.Framework):
                         is_loaded = self._load_module(dirpath, filename)
                         mod_category = 'disabled'
                         if is_loaded:
-                            mod_category = re.search('/modules/([^/]*)', dirpath).group(1)
+                            match = re.search('/modules/([^/]*)', dirpath)
+                            if match and match.groups() == 1:
+                                mod_category = match.group(1)
                         # store the resulting category statistics
                         if not mod_category in self.loaded_category:
                             self.loaded_category[mod_category] = 0

@@ -1,7 +1,7 @@
 from PyPDF2 import PdfFileReader
 from PyPDF2.utils import PdfReadError
-from StringIO import StringIO
-from urlparse import urlparse
+from io import StringIO
+from urllib import parse as urlparse
 import lxml.etree
 import olefile
 import os

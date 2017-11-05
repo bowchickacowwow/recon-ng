@@ -1,6 +1,6 @@
 from recon.core.module import BaseModule
 from recon.mixins.threads import ThreadingMixin
-from cookielib import CookieJar
+from http.cookiejar import CookieJar
 from lxml.html import fromstring
 
 class Module(BaseModule, ThreadingMixin):

@@ -1,5 +1,5 @@
 from lxml.html import fromstring
-from cookielib import CookieJar
+from http.cookiejar import CookieJar
 import os
 import re
 import tempfile

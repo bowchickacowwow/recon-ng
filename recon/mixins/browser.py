@@ -5,9 +5,7 @@ class BrowserMixin(object):
 
     def get_browser(self):
         '''Returns a mechanize.Browser object configured with the framework's global options.'''
-        br = mechanize.Browser()
-        # set the user-agent header
-        br.addheaders = [('User-agent', self._global_options['user-agent'])]
+        br = mechanicalsoup.Browser(user_agent=self._global_options['user-agent'])
         # set debug options
         if self._global_options['verbosity'] >= 2:
             br.set_debug_http(True)

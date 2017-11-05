@@ -5,10 +5,7 @@ import os
 import re
 
 # import statement to be leveraged by other modules
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
+from io import StringIO
 
 def debug(str):
     if app.config['DEBUG']:

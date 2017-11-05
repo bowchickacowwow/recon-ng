@@ -1,5 +1,5 @@
 from recon.core.module import BaseModule
-from urlparse import urlparse
+import urllib.parse as urlparse
 
 class Module(BaseModule):
 

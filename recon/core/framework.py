@@ -15,6 +15,7 @@ import sys
 import traceback
 # framework libs
 from recon.utils.requests import Request
+import pdb
 
 #=================================================
 # SUPPORT CLASSES
@@ -55,7 +56,7 @@ class Options(dict):
     def _autoconvert(self, value):
         if value in (None, True, False):
             return value
-        elif (isinstance(value, basestring)) and value.lower() in ('none', "''", '""'):
+        elif (isinstance(value, str)) and value.lower() in ('none', "''", '""'):
             return None
         orig = value
         for fn in (self._boolify, int, float):
@@ -178,16 +179,15 @@ class Framework(cmd.Cmd):
 
     def to_unicode_str(self, obj, encoding='utf-8'):
         # checks if obj is a string and converts if not
-        if not isinstance(obj, basestring):
+        if not isinstance(obj, str) and not isinstance(obj, bytes):
             obj = str(obj)
         obj = self.to_unicode(obj, encoding)
         return obj
 
     def to_unicode(self, obj, encoding='utf-8'):
         # checks if obj is a unicode string and converts if not
-        if isinstance(obj, basestring):
-            if not isinstance(obj, unicode):
-                obj = unicode(obj, encoding)
+        if not isinstance(obj, str):
+            obj = str(obj, encoding)
         return obj
 
     def is_hash(self, hashstr):
@@ -364,10 +364,10 @@ class Framework(cmd.Cmd):
                 return results
 
     def get_columns(self, table):
-        return [(x[1],x[2]) for x in self.query('PRAGMA table_info(\'%s\')' % (table))]
+        return [(self.to_unicode_str(x[1]),self.to_unicode_str(x[2])) for x in self.query('PRAGMA table_info(\'%s\')' % (table))]
 
     def get_tables(self):
-        return [x[0] for x in self.query('SELECT name FROM sqlite_master WHERE type=\'table\'') if x[0] not in ['dashboard']]
+        return [self.to_unicode_str(x[0]) for x in self.query('SELECT name FROM sqlite_master WHERE type=\'table\'') if x[0] not in ['dashboard']]
 
     #==================================================
     # ADD METHODS
@@ -711,7 +711,19 @@ class Framework(cmd.Cmd):
         result = self.query(query, values, path)
         # filter out tokens when not called from the get_key method
         if type(result) is list and 'get_key' not in [x[3] for x in inspect.stack()]:
-            result = [x for x in result if not x[0].endswith('_token')]
+            new_result = []
+            for t in result:
+                name = self.to_unicode_str(t[0])
+                if t[1]:
+                    val = self.to_unicode_str(t[1])
+                else:
+                    val = None
+                
+                if val is None:
+                    new_result.append((name, val))
+                elif val and not val.endswith('_token'):
+                    new_result.append((name, val))
+            result = new_result
         return result
 
     def _list_keys(self):

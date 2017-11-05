@@ -3,7 +3,7 @@ from recon.mixins.search import GoogleWebMixin
 from itertools import groupby
 import json
 import os
-import urlparse
+import urllib.parse as urlparse
 
 def _optionize(s):
     return 'ghdb_%s' % (s.replace(' ', '_').lower())

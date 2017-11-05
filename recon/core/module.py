@@ -1,8 +1,8 @@
 from __future__ import print_function
-import cookielib
+from http.cookiejar import Cookie
 import hashlib
 import hmac
-import HTMLParser
+from html.parser import HTMLParser 
 import os
 import re
 import socket
@@ -12,7 +12,7 @@ import sys
 import textwrap
 import time
 import urllib
-import urlparse
+from urllib import parse as urlparse
 # framework libs
 from recon.core import framework
 
@@ -434,7 +434,7 @@ class BaseModule(framework.Framework):
     #==================================================
 
     def make_cookie(self, name, value, domain, path='/'):
-        return cookielib.Cookie(
+        return Cookie(
             version=0, 
             name=name, 
             value=value,

@@ -123,7 +123,7 @@ class Module(BaseModule):
     def __parse_file(self):
         filename = self.options['filename']
         if not filename:
-            raise IOError
+            raise IOError('no filename specified')
         sep = self.options['column_separator']
         quote = self.options['quote_character']
         values = []

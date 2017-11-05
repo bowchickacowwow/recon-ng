@@ -1,6 +1,6 @@
 from recon.core.module import BaseModule
 from recon.utils.requests import encode_payload
-from cookielib import CookieJar
+from http.cookiejar import CookieJar
 import urllib
 import re
 import hashlib

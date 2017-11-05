@@ -6,8 +6,8 @@ dnspython
 flask
 jsonrpclib
 lxml
-mechanize
+MechanicalSoup
 olefile
 requests
-slowaes
+cryptography
 unicodecsv

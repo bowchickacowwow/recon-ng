@@ -1,5 +1,5 @@
 from recon.core.module import BaseModule
-from cookielib import CookieJar
+from http.cookiejar import CookieJar
 import urllib
 import re
 import time

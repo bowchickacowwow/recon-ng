@@ -24,14 +24,14 @@ class Module(BaseModule):
                 self.error('Invalid JSON response for \'%s\'.\n%s' % (host, resp.text))
                 continue
             if resp.status_code == 429:
-                self.error("Exceeded request allowance. ipinfo.io is telling you to back off.")
+                self.error('Exceeded request allowance. ipinfo.io is telling you to back off.')
                 break
             time.sleep(.7)
-            region = ', '.join([str(jsonobj[x]).title() for x in ['city', 'region'] if jsonobj[x]]) or None
-            country = jsonobj['country']
-            loc = jsonobj['loc']
+            region = ', '.join([str(jsonobj[x]).title() for x in ['city', 'region'] if x in jsonobj.keys() and jsonobj[x]]) or None
+            country = jsonobj.get('country', '')
+            loc = jsonobj.get('loc', ',')
             latitude, longitude = loc.split(',')
-            org = jsonobj['org']
-            asn, org_name = org.split(" ", 1)
+            org = jsonobj.get('org', ' ')
+            asn, org_name = org.split(' ', 1)
             self.output('%s - %s %s - %s,%s - %s' % (host, asn, org_name, latitude, longitude, ', '.join([x for x in [region, country] if x])))
             self.query('UPDATE hosts SET asn=?, org=?, region=?, country=?, latitude=?, longitude=? WHERE ip_address=?', (asn, org_name, region, country, latitude, longitude, host))
